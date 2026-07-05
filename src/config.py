@@ -1,40 +1,61 @@
-"""
-config.py
-Loads and validates environment configuration for the PR Review Agent.
-"""
-
 import os
-import sys
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
 class Config:
+
+    # -----------------------
+    # GitHub
+    # -----------------------
     GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-    ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-    ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5")
+    GITHUB_USERNAME = os.getenv("GITHUB_USERNAME")
     GITHUB_API_URL = "https://api.github.com"
 
-    # Files larger than this (in changed lines) get truncated before
-    # being sent to the model, to control cost/context size.
-    MAX_DIFF_LINES_PER_FILE = 400
-
-    # File extensions the agent will skip (binaries, locks, generated code)
-    IGNORED_PATTERNS = (
-        ".lock", ".min.js", ".map", ".png", ".jpg", ".jpeg", ".gif",
-        ".svg", ".ico", ".woff", ".woff2", ".ttf", ".pdf", ".zip",
-        "package-lock.json", "yarn.lock", "poetry.lock",
+    # -----------------------
+    # Ollama
+    # -----------------------
+    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
+    OLLAMA_URL = os.getenv(
+        "OLLAMA_URL",
+        "http://localhost:11434/api/generate"
     )
 
-    @classmethod
-    def validate(cls):
-        missing = []
-        if not cls.GITHUB_TOKEN:
-            missing.append("GITHUB_TOKEN")
-        if not cls.ANTHROPIC_API_KEY:
-            missing.append("ANTHROPIC_API_KEY")
-        if missing:
-            print(f"ERROR: Missing required environment variables: {', '.join(missing)}")
-            print("Copy .env.example to .env and fill in your values.")
-            sys.exit(1)
+    # -----------------------
+    # Review Settings
+    # -----------------------
+    MAX_DIFF_LINES_PER_FILE = 300
+
+    IGNORED_PATTERNS = [
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".svg",
+        ".ico",
+        ".pdf",
+        ".zip",
+        ".exe",
+        ".dll",
+        ".class",
+        ".jar",
+        ".lock",
+        ".min.js",
+        ".min.css",
+    ]
+
+    @staticmethod
+    def validate():
+
+        if not Config.GITHUB_TOKEN:
+            raise ValueError("Missing GITHUB_TOKEN in .env")
+
+        if not Config.GITHUB_USERNAME:
+            raise ValueError("Missing GITHUB_USERNAME in .env")
+
+        if not Config.OLLAMA_MODEL:
+            raise ValueError("Missing OLLAMA_MODEL in .env")
+
+        if not Config.OLLAMA_URL:
+            raise ValueError("Missing OLLAMA_URL in .env")
